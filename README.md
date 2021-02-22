@@ -26,3 +26,6 @@ them in InfluxDB.
 ### Ports
 - InfluxDB is available on :8086
 - Grafana is available on :3000
+
+## License
+This code is provided under the [![cc-by-sa 4.0](https://i.creativecommons.org/l/by-sa/4.0/80x15.png)](https://raw.githubusercontent.com/santisoler/cc-licenses/master/LICENSE-CC-BY-SA) license.
