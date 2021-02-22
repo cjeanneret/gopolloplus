@@ -1,6 +1,9 @@
 # GoPolloPlus
 Talk to your FDF Apollo Plus console!
 
+## Status
+[![Go](https://github.com/cjeanneret/gopolloplus/actions/workflows/go.yml/badge.svg)](https://github.com/cjeanneret/gopolloplus/actions/workflows/go.yml)
+
 ## What does it do?
 Using the Apollo Plus USB port, this application pushes the data in an InfluxDB service,
 allowing to display your stats in Grafana.
