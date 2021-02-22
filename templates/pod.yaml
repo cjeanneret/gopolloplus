@@ -1,0 +1,122 @@
+# Generation of Kubernetes YAML is still under development!
+#
+# Save the output of this file and use kubectl create -f to import
+# it into Kubernetes.
+#
+# Created with podman-2.0.6
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: {{ .PodName }}
+  name: {{ .PodName }}
+spec:
+  containers:
+  - command:
+    - influxd
+    - '-config'
+    - /etc/influxdb/influxdb.conf
+    env:
+    - name: PATH
+      value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    - name: TERM
+      value: xterm
+    - name: INFLUXDB_VERSION
+      value: 1.8.4
+    - name: container
+      value: podman
+    - name: HOSTNAME
+      value: gopollo-db
+    - name: INFLUXDB_DB
+      value: gopolloplus
+    - name: INFLUXDB_ADMIN_USER
+      value: gopolloplus
+    - name: INFLUXDB_ADMIN_PASSWORD
+      value: UNITw198Nlac
+    - name: INFLUXDB_USER
+      value: gopollo
+    - name: INFLUXDB_USER_PASSWORD
+      value: NLLLii8GHSJ7
+    image: {{ .Influx_img }}
+    name: database
+    ports:
+    - containerPort: 8086
+      hostPort: 8086
+      protocol: TCP
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities: {}
+      privileged: false
+      readOnlyRootFilesystem: false
+      seLinuxOptions: {}
+    volumeMounts:
+    - mountPath: /var/lib/influxdb
+      name: influxdata
+    - mountPath: /etc/influxdb/influxdb.conf:ro
+      name: influxdb-conf
+      ReadOnly: true
+    workingDir: /
+  - env:
+    - name: PATH
+      value: /usr/share/grafana/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    - name: TERM
+      value: xterm
+    - name: GF_PATHS_CONFIG
+      value: /etc/grafana/grafana.ini
+    - name: GF_PATHS_DATA
+      value: /var/lib/grafana
+    - name: GF_PATHS_LOGS
+      value: /var/log/grafana
+    - name: GF_PATHS_PROVISIONING
+      value: /etc/grafana/provisioning
+    - name: GF_INSTALL_PLUGINS
+      value: grafana-clock-panel
+    - name: container
+      value: podman
+    - name: GF_PATHS_HOME
+      value: /usr/share/grafana
+    - name: GF_PATHS_PLUGINS
+      value: /var/lib/grafana/plugins
+    - name: HOSTNAME
+      value: gopolloplus
+    image: {{ Grafana_img }}
+    name: grafana
+    resources: {}
+    volumeMounts:
+    - mountPath: /var/lib/grafana
+      name: grafana-lib
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities: {}
+      privileged: false
+      readOnlyRootFilesystem: false
+      runAsGroup: 0
+      runAsUser: 472
+      seLinuxOptions: {}
+    ports:
+    - containerPort: 3000
+      hostPort: 3000
+      protocol: TCP
+    workingDir: /usr/share/grafana
+  volumes:
+  - hostPath:
+      path: {{ .Influx_data }}
+      type: Directory
+    name: influxdata
+  - hostPath:
+      path: {{ .Influx_conf }}
+      type: File
+    name: influxdb-conf
+  - hostPath:
+      path: {{ Grafana_data }}
+      type: File
+    name: grafana-lib
+status: {}
+---
+metadata:
+  creationTimestamp: null
+spec: {}
+status:
+  loadBalancer: {}
+
