@@ -32,7 +32,7 @@ func main() {
   log.SetOutput(log_file)
 
   if cfg.Pod {
-    res, err := ApolloPlus.ManagePod(cfg)
+    _, err := ApolloUtils.ManagePod(cfg)
     if err != nil {
       log.Fatal(err)
     }

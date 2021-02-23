@@ -78,7 +78,7 @@ func ManagePod(cfg *ApolloConfig) (bool, error) {
 
   // Check if pod already exists
   var exists bool
-  exists, err = pods.Exists(conn, pod_name)
+  exists, err = pods.Exists(conn, pod_name, nil)
   if err != nil {
     return false, err
   }
@@ -89,7 +89,7 @@ func ManagePod(cfg *ApolloConfig) (bool, error) {
   // Generate pod configuration files
   influx_tmp, pod_tmp := generate_pod(cfg)
   // Kube options
-  kube_opt := new(bindings.KubeOptions).WithStart(true)
+  kube_opt := new(play.KubeOptions).WithStart(true)
   // Init influxdb...
   _, err = play.Kube(conn, influx_tmp.Name(), kube_opt)
   if err != nil {
