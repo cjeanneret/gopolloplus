@@ -1,8 +1,8 @@
 package ApolloUtils
 import (
   "context"
-  "fmt"
   "io/ioutil"
+  "log"
   "os"
   "strconv"
   "text/template"
@@ -31,36 +31,37 @@ type ApolloConfig struct {
   Influx_db, Influx_img, Influx_data, Influx_conf string
 }
 
-func generate_pod(cfg *ApolloConfig) (influx_tmp *os.File, pod_tmp *os.File) {
+func generate_pod(cfg *ApolloConfig, log_file *os.File) (influx_tmp *os.File, pod_tmp *os.File) {
+  log.SetOutput(log_file)
   var err error
 
   influx_tmpl, err := template.ParseFiles("templates/influxdb-config.yaml")
   if err != nil {
-    fmt.Sprintf("ERROR: %s", err)
+    log.Fatalf("ERROR: %v", err)
   }
   pod_tmpl, err := template.ParseFiles("templates/pod.yaml")
   if err != nil {
-    fmt.Sprintf("ERROR: %s", err)
+    log.Fatalf("ERROR: %v", err)
   }
 
   influx_tmp, err = ioutil.TempFile("", "influx-init.*.yaml")
   if err != nil {
-    fmt.Sprintf("ERROR: %s", err)
+    log.Fatalf("ERROR: %v", err)
   }
-  fh, err := os.OpenFile(influx_tmp.Name(), os.O_CREATE, 0644)
+  fh, err := os.OpenFile(influx_tmp.Name(), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
   if err != nil {
-    fmt.Sprintf("ERROR: %s", err)
+    log.Fatalf("ERROR: %v", err)
   }
   influx_tmpl.Execute(fh, cfg)
   fh.Close()
 
   pod_tmp, err = ioutil.TempFile("", "gopollo-pod.*.yaml")
   if err != nil {
-    fmt.Sprintf("ERROR: %s", err)
+    log.Fatalf("ERROR: %v", err)
   }
-  fh, err = os.OpenFile(pod_tmp.Name(), os.O_CREATE, 0644)
+  fh, err = os.OpenFile(pod_tmp.Name(), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
   if err != nil {
-    fmt.Sprintf("ERROR: %s", err)
+    log.Fatalf("ERROR: %v", err)
   }
   pod_tmpl.Execute(fh, cfg)
   fh.Close()
@@ -68,45 +69,49 @@ func generate_pod(cfg *ApolloConfig) (influx_tmp *os.File, pod_tmp *os.File) {
   return
 }
 
-func ManagePod(cfg *ApolloConfig) (bool, error) {
+func ManagePod(cfg *ApolloConfig, log_file *os.File) {
   pod_name := cfg.PodName
 
+  log.Print("Starting Podman connection")
   conn, err := bindings.NewConnection(context.Background(), cfg.PodSocket)
   if err != nil {
-    return false, err
+    log.Fatal(err)
   }
 
   // Check if pod already exists
   var exists bool
+  log.Print("Checking if pod exists")
   exists, err = pods.Exists(conn, pod_name, nil)
   if err != nil {
-    return false, err
+    log.Fatal(err)
   }
   if exists {
-    return true, nil
+    log.Print("Pod exists!")
+    return
   }
 
   // Generate pod configuration files
-  influx_tmp, pod_tmp := generate_pod(cfg)
+  influx_tmp, pod_tmp := generate_pod(cfg, log_file)
   // Kube options
   kube_opt := new(play.KubeOptions).WithStart(true)
   // Init influxdb...
+  log.Print("Configuring InfluxDB")
   _, err = play.Kube(conn, influx_tmp.Name(), kube_opt)
   if err != nil {
-    return false, err
+    log.Fatal(err)
   }
   // Force remove pod...
+  log.Print("Clean temporary InfluxDB")
   _, err = pods.Remove(conn, pod_name, new(pods.RemoveOptions).WithForce(true))
   if err != nil {
-    return false, err
+    log.Fatal(err)
   }
   // Create the whole pod
+  log.Print("Create application Pod")
   _, err = play.Kube(conn, pod_tmp.Name(), kube_opt)
   if err != nil {
-    return false, err
+    log.Fatal(err)
   }
-
-  return true, nil
 }
 
 func Check_for_socket(socket string) bool {
