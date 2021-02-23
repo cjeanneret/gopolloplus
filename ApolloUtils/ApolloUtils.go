@@ -31,8 +31,8 @@ type ApolloConfig struct {
   Influx_db, Influx_img, Influx_data, Influx_conf string
 }
 
-func generate_pod(cfg *ApolloConfig, log_file *os.File) (influx_tmp *os.File, pod_tmp *os.File) {
-  log.SetOutput(log_file)
+func generate_pod(cfg *ApolloConfig, logfile *os.File) (influx_tmp *os.File, pod_tmp *os.File) {
+  log.SetOutput(logfile)
   var err error
 
   influx_tmpl, err := template.ParseFiles("templates/influxdb-config.yaml")
@@ -69,11 +69,34 @@ func generate_pod(cfg *ApolloConfig, log_file *os.File) (influx_tmp *os.File, po
   return
 }
 
-func ManagePod(cfg *ApolloConfig, log_file *os.File) {
+func ensure_pod(ctx context.Context, nameOrId string, logfile *os.File) {
+  log.SetOutput(logfile)
+  report, err := pods.Inspect(ctx, nameOrId, nil)
+  if err != nil {
+    log.Fatalf("ERROR: %v", err)
+  }
+  restart := false
+  for _, ct := range(report.Containers) {
+    log.Printf("Checking: %s", ct.Name)
+    if ct.State != "running" {
+      restart = true
+    }
+  }
+  if restart {
+    log.Print("At least one container is down. Restarting Pod!")
+    _, err := pods.Restart(ctx, nameOrId, nil)
+    if err != nil {
+      log.Fatal(err)
+    }
+  }
+}
+
+func ManagePod(cfg *ApolloConfig, logfile *os.File) {
+  log.SetOutput(logfile)
   pod_name := cfg.PodName
 
   log.Print("Starting Podman connection")
-  conn, err := bindings.NewConnection(context.Background(), cfg.PodSocket)
+  ctx, err := bindings.NewConnection(context.Background(), cfg.PodSocket)
   if err != nil {
     log.Fatal(err)
   }
@@ -81,34 +104,33 @@ func ManagePod(cfg *ApolloConfig, log_file *os.File) {
   // Check if pod already exists
   var exists bool
   log.Print("Checking if pod exists")
-  exists, err = pods.Exists(conn, pod_name, nil)
+  exists, err = pods.Exists(ctx, pod_name, nil)
   if err != nil {
     log.Fatal(err)
   }
   if exists {
     log.Print("Pod exists!")
+    ensure_pod(ctx, pod_name, logfile)
+    // Exit early
     return
   }
 
   // Generate pod configuration files
-  influx_tmp, pod_tmp := generate_pod(cfg, log_file)
+  influx_tmp, pod_tmp := generate_pod(cfg, logfile)
   // Kube options
   kube_opt := new(play.KubeOptions).WithStart(true)
-  // Init influxdb...
   log.Print("Configuring InfluxDB")
-  _, err = play.Kube(conn, influx_tmp.Name(), kube_opt)
+  _, err = play.Kube(ctx, influx_tmp.Name(), kube_opt)
   if err != nil {
     log.Fatal(err)
   }
-  // Force remove pod...
   log.Print("Clean temporary InfluxDB")
-  _, err = pods.Remove(conn, pod_name, new(pods.RemoveOptions).WithForce(true))
+  _, err = pods.Remove(ctx, pod_name, new(pods.RemoveOptions).WithForce(true))
   if err != nil {
     log.Fatal(err)
   }
-  // Create the whole pod
   log.Print("Create application Pod")
-  _, err = play.Kube(conn, pod_tmp.Name(), kube_opt)
+  _, err = play.Kube(ctx, pod_tmp.Name(), kube_opt)
   if err != nil {
     log.Fatal(err)
   }
