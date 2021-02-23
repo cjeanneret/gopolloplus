@@ -18,8 +18,7 @@ func main() {
   flag.Parse()
 
   if *config_file == "" {
-    fmt.Print("Missing '-c CONFIG_FILE' parameter")
-    os.Exit(255)
+    log.Fatal("Missing '-c CONFIG_FILE' parameter")
   }
 
   cfg := ApolloUtils.LoadConfig(*config_file)
@@ -32,10 +31,8 @@ func main() {
   log.SetOutput(log_file)
 
   if cfg.Pod {
-    _, err := ApolloUtils.ManagePod(cfg)
-    if err != nil {
-      log.Fatal(err)
-    }
+    log.Print("Checking and managing Pod")
+    ApolloUtils.ManagePod(cfg, log_file)
   }
 
   for {
