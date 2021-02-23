@@ -37,26 +37,26 @@ You can either create ~/.gopolloplus.ini, or pass the file running ```gopolloplu
 Here are the supported (and mandatory) parameters for each sections.
 
 #### gopolloplus
-* pod_name: Name of the pod managed by gopolloplus
-* manage_pod: Whether or not gopolloplus must manage the pod
-* podman_socket: Location of the socket for podman (starting 2.2, 3 is better)
-* socket: FDF Apollo Plus socket - usually /dev/ttyUSB0
-* log_file: Full path to the log file
+* ```pod_name```: Name of the pod managed by gopolloplus
+* ```manage_pod```: Whether or not gopolloplus must manage the pod
+* ```podman_socket```: Location of the socket for podman (starting 2.2, 3 is better)
+* ```socket```: FDF Apollo Plus socket - usually /dev/ttyUSB0
+* ```log_file```: Full path to the log file
 
 #### grafana
-* image: Container image for the grafana container (in case manage_pod is true)
-* data: directory path for grafana data. Note that podman currently doesn't support volumes within a play.
+* ```image```: Container image for the grafana container (in case manage_pod is true)
+* ```data```: directory path for grafana data. Note that podman currently doesn't support volumes within a play.
 
 #### influxdb
-* host: Host URI for the InfluxDB instance
-* admin_user: InfluxDB Admin username (for bootstrap)
-* admin_password: InfluxDB Admin password (for bootstrap)
-* user: InfluxDB standard user (for data insertion)
-* password: InfluxDB standard user password (for data insertion)
-* database: InfluxDB database name
-* image: Container image for InfluxDB
-* data: directory path for InfluxDB data
-* config: full path to your custom InfluxDB configuration. A sample is available in configs/
+* ```host```: Host URI for the InfluxDB instance
+* ```admin_user```: InfluxDB Admin username (for bootstrap)
+* ```admin_password```: InfluxDB Admin password (for bootstrap)
+* ```user```: InfluxDB standard user (for data insertion)
+* ```password```: InfluxDB standard user password (for data insertion)
+* ```database```: InfluxDB database name
+* ```image```: Container image for InfluxDB
+* ```data```: directory path for InfluxDB data
+* ```config```: full path to your custom InfluxDB configuration. A sample is available in configs/
 
 ## License
-This code is provided under the [![cc-by-sa 4.0](https://i.creativecommons.org/l/by-sa/4.0/80x15.png)](https://raw.githubusercontent.com/santisoler/cc-licenses/master/LICENSE-CC-BY-SA) license.
+This code is provided under the [![cc-by-sa 4.0](https://i.creativecommons.org/l/by-sa/4.0/80x15.png)](https://raw.githubusercontent.com/santisoler/cc-licenses/master/LICENSE-CC-BY-SA) 4.0 license.
