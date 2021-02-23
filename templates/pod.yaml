@@ -80,7 +80,7 @@ spec:
       value: /var/lib/grafana/plugins
     - name: HOSTNAME
       value: gopolloplus
-    image: {{ Grafana_img }}
+    image: {{ .Grafana_img }}
     name: grafana
     resources: {}
     volumeMounts:
@@ -109,7 +109,7 @@ spec:
       type: File
     name: influxdb-conf
   - hostPath:
-      path: {{ Grafana_data }}
+      path: {{ .Grafana_data }}
       type: File
     name: grafana-lib
 status: {}
