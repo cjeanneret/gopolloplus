@@ -5,6 +5,7 @@ import (
   "log"
   "os"
   "os/signal"
+  "path"
   "strings"
   "syscall"
   "time"
@@ -14,20 +15,30 @@ import (
 )
 
 func main() {
-  config_file := flag.String("c", "", "Configuration file")
-  flag.Parse()
+  var cfg *ApolloUtils.ApolloConfig
+  standard_cfg := path.Join(os.Getenv("HOME"), ".gopolloplus.ini")
+  _, err := os.Stat(standard_cfg)
+  if err == nil {
+    log.Printf("Found default config file: %s", standard_cfg)
+    cfg = ApolloUtils.LoadConfig(standard_cfg)
+  } else {
+    log.Printf("File not found, checking parameters")
+    config_file := flag.String("c", "", "Configuration file")
+    flag.Parse()
 
-  if *config_file == "" {
-    log.Fatal("Missing '-c CONFIG_FILE' parameter")
+    if *config_file == "" {
+      log.Fatal("Missing '-c CONFIG_FILE' parameter")
+    }
+    log.Printf("Loading %v", *config_file)
+    cfg = ApolloUtils.LoadConfig(*config_file)
   }
-
-  cfg := ApolloUtils.LoadConfig(*config_file)
 
   log_file, err := os.OpenFile(cfg.Logfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
   if err != nil {
     log.Fatal(err)
   }
   defer log_file.Close()
+  log.Printf("Writing logs to %s", cfg.Logfile)
   log.SetOutput(log_file)
 
   if cfg.Pod {
