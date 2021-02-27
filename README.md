@@ -8,20 +8,26 @@ Talk to your FDF Apollo Plus console!
 Using the Apollo Plus USB port, this application pushes the data in an InfluxDB service,
 allowing to display your stats in Grafana.
 
-## Dependencies (based on Fedora 33)
+## Build dependencies (based on Fedora 33)
 - device-mapper-devel
 - gpgme-devel
 - btrfs-progs-devel
+- gtk3-devel
 
-Those dependencies are for the Podman integration.
+Those dependencies are for the Podman and UI integration.
+
+## Runtime dependencies
+- Podman (>= 3) ([See installation reference](https://podman.io/getting-started/installation.html))
 
 ## How does it work?
-The main app, ```gopolloplus``` starts a podman pod running two containers:
+The main app, ```gopolloplus```, may starts a podman pod running two containers:
 - InfluxDB
 - Grafana
 
 The app then connects to the /dev/ttyUSB0 and reads the data from the monitor, parses and pushes
 them in InfluxDB.
+
+See the Configuration section for more information.
 
 ### Ports
 - InfluxDB is available on :8086
