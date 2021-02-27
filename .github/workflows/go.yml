@@ -22,7 +22,7 @@ jobs:
       run: sudo apt update
 
     - name: Install dependencies
-      run: sudo apt install -y libbtrfs-dev libgpgme-dev libdevmapper-dev
+      run: sudo apt install -y libbtrfs-dev libgpgme-dev libdevmapper-dev libgtk-3-dev
 
     - name: Build
       run: go build -v ./...
