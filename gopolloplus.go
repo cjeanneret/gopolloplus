@@ -68,23 +68,37 @@ func main() {
   port.Write([]byte("C\n"))
 
   data_flow := make(chan *apolloUtils.ApolloData)
+  callback := make(chan uint)
   ui_err := ui.Main(func() {
     window := ui.NewWindow("GoPolloPlus", 100, 50, false)
     window.SetMargined(true)
     window.SetBorderless(true)
     window.OnClosing(func(*ui.Window) bool {
-      window.Destroy()
+      callback <-1
       port.Close()
+      writeInflux.Flush()
       influxClient.Close()
+
+      window.Destroy()
       ui.Quit()
       return false
     })
     ui.OnShouldQuit(func() bool {
+      callback <-1
+      port.Close()
+      writeInflux.Flush()
+      influxClient.Close()
+
       window.Destroy()
       return true
     })
     b_quit := ui.NewButton("Quit")
     b_quit.OnClicked(func(*ui.Button) {
+      callback <-1
+      port.Close()
+      writeInflux.Flush()
+      influxClient.Close()
+
       window.Destroy()
       ui.Quit()
     })
@@ -93,7 +107,7 @@ func main() {
     box.Append(ui.NewLabel("GoPolloPlus"), false)
     box.Append(b_quit, false)
     window.SetChild(box)
-    go usbSocket.ReadSocket(port, log_file, data_flow)
+    go usbSocket.ReadSocket(port, log_file, data_flow, callback)
     go func() {
       for {
         d := <-data_flow

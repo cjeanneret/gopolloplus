@@ -30,7 +30,8 @@ func WaitForSocket(socket string, attempts uint, logfile *os.File) bool {
 }
 
 func ReadSocket(port serial.Port, logfile *os.File,
-                data_flow chan *apolloUtils.ApolloData) {
+                data_flow chan *apolloUtils.ApolloData,
+                callback chan uint) {
   log.SetOutput(logfile)
   log.Print("Starting the USB Reader")
 
@@ -41,6 +42,11 @@ func ReadSocket(port serial.Port, logfile *os.File,
   )
 
   for {
+    // read callback and break loop if val = 1
+    if <-callback == 1 {
+      log.Print("Callback received!")
+      break
+    }
     n, err := port.Read(buff)
     if err != nil {
       log.Printf("ERROR: %v", err)
