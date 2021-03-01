@@ -109,6 +109,7 @@ func main() {
     window.SetChild(box)
     go usbSocket.ReadSocket(port, log_file, data_flow, callback)
     go func() {
+      log.Print("Start chan reader")
       for {
         d := <-data_flow
         log.Printf("%v", d)

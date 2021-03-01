@@ -42,11 +42,6 @@ func ReadSocket(port serial.Port, logfile *os.File,
   )
 
   for {
-    // read callback and break loop if val = 1
-    if <-callback == 1 {
-      log.Print("Callback received!")
-      break
-    }
     n, err := port.Read(buff)
     if err != nil {
       log.Printf("ERROR: %v", err)
@@ -65,6 +60,16 @@ func ReadSocket(port serial.Port, logfile *os.File,
       data_flow <-data
       time.Sleep(time.Second * 1) // 1 second
       //time.Sleep(time.Millisecond * 500) // 1/2 second
+    }
+    // read callback and break loop if val = 1
+    select {
+      case exit:= <-callback:
+        if exit == 1 {
+          log.Print("Callback received!")
+          break
+        }
+      default:
+        // loop continues
     }
   }
 }
