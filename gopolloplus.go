@@ -68,13 +68,13 @@ func main() {
   port.Write([]byte("C\n"))
 
   data_flow := make(chan *apolloUtils.ApolloData)
-  callback := make(chan uint)
+  callback := make(chan bool)
   ui_err := ui.Main(func() {
     window := ui.NewWindow("GoPolloPlus", 100, 50, false)
     window.SetMargined(true)
     window.SetBorderless(true)
     window.OnClosing(func(*ui.Window) bool {
-      callback <-1
+      close(callback)
       port.Close()
       writeInflux.Flush()
       influxClient.Close()
@@ -84,7 +84,7 @@ func main() {
       return false
     })
     ui.OnShouldQuit(func() bool {
-      callback <-1
+      close(callback)
       port.Close()
       writeInflux.Flush()
       influxClient.Close()
@@ -94,7 +94,9 @@ func main() {
     })
     b_quit := ui.NewButton("Quit")
     b_quit.OnClicked(func(*ui.Button) {
-      callback <-1
+      callback <- true
+      close(callback)
+      time.Sleep(time.Second)
       port.Close()
       writeInflux.Flush()
       influxClient.Close()
@@ -111,6 +113,7 @@ func main() {
     go func() {
       log.Print("Start chan reader")
       for {
+        callback <- false
         d := <-data_flow
         log.Printf("%v", d)
         p := influxdb2.NewPoint(
