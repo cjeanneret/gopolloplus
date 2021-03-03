@@ -6,9 +6,11 @@ import (
   "os"
   "path"
   "time"
-  "github.com/andlabs/ui"
+  "fyne.io/fyne/v2/app"
+  "fyne.io/fyne/v2/widget"
   "github.com/influxdata/influxdb-client-go/v2"
   "github.com/cjeanneret/gopolloplus/pkg/apolloUtils"
+  "github.com/cjeanneret/gopolloplus/pkg/containerUtils"
   "github.com/cjeanneret/gopolloplus/pkg/usbSocket"
   "go.bug.st/serial"
 )
@@ -43,7 +45,7 @@ func main() {
 
   if cfg.Pod {
     log.Print("Checking and managing Pod")
-    apolloUtils.ManagePod(cfg, log_file)
+    containerUtils.ManagePod(cfg, log_file)
   }
 
   // Ensure the socket is ready
@@ -69,72 +71,47 @@ func main() {
 
   data_flow := make(chan *apolloUtils.ApolloData)
   callback := make(chan bool)
-  ui_err := ui.Main(func() {
-    window := ui.NewWindow("GoPolloPlus", 100, 50, false)
-    window.SetMargined(true)
-    window.SetBorderless(true)
-    window.OnClosing(func(*ui.Window) bool {
-      close(callback)
-      port.Close()
-      writeInflux.Flush()
-      influxClient.Close()
 
-      window.Destroy()
-      ui.Quit()
-      return false
-    })
-    ui.OnShouldQuit(func() bool {
-      close(callback)
-      port.Close()
-      writeInflux.Flush()
-      influxClient.Close()
-
-      window.Destroy()
-      return true
-    })
-    b_quit := ui.NewButton("Quit")
-    b_quit.OnClicked(func(*ui.Button) {
-      callback <- true
-      close(callback)
-      time.Sleep(time.Second)
-      port.Close()
-      writeInflux.Flush()
-      influxClient.Close()
-
-      window.Destroy()
-      ui.Quit()
-    })
-
-    box := ui.NewVerticalBox()
-    box.Append(ui.NewLabel("GoPolloPlus"), false)
-    box.Append(b_quit, false)
-    window.SetChild(box)
-    go usbSocket.ReadSocket(port, log_file, data_flow, callback)
-    go func() {
-      log.Print("Start chan reader")
-      for {
-        callback <- false
-        d := <-data_flow
-        log.Printf("%v", d)
-        p := influxdb2.NewPoint(
-          "RowerSession",
-          map[string]string{},
-          map[string]interface{}{
-            "TotalTime": d.TotalTime,
-            "Distance": d.Distance,
-            "TimeTo500m": d.TimeTo500m,
-            "SPM": d.SPM,
-            "Watt": d.Watt,
-            "CalPerH": d.CalPerH,
-            "Level": d.Level,
-          }, time.Now())
-          writeInflux.WritePoint(p)
-        }
-    }()
-    window.Show()
+  ui := app.New()
+  window := ui.NewWindow("GoPolloPlus")
+  button_quit := widget.NewButton("Quit", func() {
+    select {
+    case callback <- true:
+    default:
+    }
+    close(callback)
+    time.Sleep(time.Second)
+    port.Close()
+    writeInflux.Flush()
+    influxClient.Close()
+    //window.Destroy()
+    ui.Quit()
   })
-  if ui_err != nil {
-    log.Fatal(ui_err)
-  }
+
+  window.SetContent(button_quit)
+
+  go usbSocket.ReadSocket(port, log_file, data_flow, callback)
+  go func() {
+    log.Print("Start chan reader")
+    for {
+      d := <-data_flow
+      log.Printf("%v", d)
+      p := influxdb2.NewPoint(
+        "RowerSession",
+        map[string]string{},
+        map[string]interface{}{
+          "TotalTime": d.TotalTime,
+          "Distance": d.Distance,
+          "TimeTo500m": d.TimeTo500m,
+          "SPM": d.SPM,
+          "Watt": d.Watt,
+          "CalPerH": d.CalPerH,
+          "Level": d.Level,
+        }, time.Now())
+        writeInflux.WritePoint(p)
+      }
+  }()
+
+  window.ShowAndRun()
 }
 
