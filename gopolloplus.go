@@ -6,7 +6,9 @@ import (
   "os"
   "path"
   "time"
+  fyne "fyne.io/fyne/v2"
   "fyne.io/fyne/v2/app"
+  "fyne.io/fyne/v2/layout"
   "fyne.io/fyne/v2/widget"
   "github.com/influxdata/influxdb-client-go/v2"
   "github.com/cjeanneret/gopolloplus/pkg/apolloUtils"
@@ -73,22 +75,33 @@ func main() {
   callback := make(chan bool)
 
   ui := app.New()
-  window := ui.NewWindow("GoPolloPlus")
+  window := ui.NewWindow("")
+  window.SetTitle("GoPolloPlus - FDF Apollo Plus Rower Stats")
+  window.SetMaster()
+
   button_quit := widget.NewButton("Quit", func() {
     select {
     case callback <- true:
     default:
     }
-    close(callback)
     time.Sleep(time.Second)
     port.Close()
     writeInflux.Flush()
     influxClient.Close()
-    //window.Destroy()
+    close(callback)
+    window.Close()
     ui.Quit()
   })
 
-  window.SetContent(button_quit)
+  button_reset := widget.NewButton("New Session", func() {
+    port.Write([]byte("C\n"))
+  })
+
+  container := fyne.NewContainerWithLayout(
+    layout. NewGridLayoutWithColumns(2),
+    button_reset, button_quit)
+
+  window.SetContent(container)
 
   go usbSocket.ReadSocket(port, log_file, data_flow, callback)
   go func() {
