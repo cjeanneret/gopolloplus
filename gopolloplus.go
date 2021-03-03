@@ -80,15 +80,11 @@ func main() {
   window.SetMaster()
 
   button_quit := widget.NewButton("Quit", func() {
-    select {
-    case callback <- true:
-    default:
-    }
+    callback <- true
     time.Sleep(time.Second)
     port.Close()
     writeInflux.Flush()
     influxClient.Close()
-    close(callback)
     window.Close()
     ui.Quit()
   })
@@ -108,7 +104,7 @@ func main() {
     log.Print("Start chan reader")
     for {
       d := <-data_flow
-      log.Printf("%v", d)
+      log.Printf("Data received")
       p := influxdb2.NewPoint(
         "RowerSession",
         map[string]string{},
