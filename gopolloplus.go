@@ -78,6 +78,8 @@ func main() {
   window := ui.NewWindow("")
   window.SetTitle("GoPolloPlus - FDF Apollo Plus Rower Stats")
   window.SetMaster()
+  window.SetFullScreen(false)
+  window.SetFixedSize(true)
 
   button_quit := widget.NewButton("Quit", func() {
     callback <- true
