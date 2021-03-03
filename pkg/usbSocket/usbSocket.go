@@ -42,8 +42,15 @@ func ReadSocket(port serial.Port, logfile *os.File,
   )
   exit := false
   for {
-    exit = <-callback
-    if exit { break }
+    select {
+    case exit = <-callback:
+      log.Print("Got callback...")
+    default:
+    }
+    if exit {
+      log.Print("Exiting...")
+      break
+    }
 
     n, err := port.Read(buff)
     if err != nil {
@@ -59,7 +66,6 @@ func ReadSocket(port serial.Port, logfile *os.File,
     if len(output) == 29 {
       log.Print("Parse data")
       data = apolloUtils.Parse_apollo(output)
-      log.Print("Got data")
       select {
         case data_flow <-data:
           log.Print("Data sent")
