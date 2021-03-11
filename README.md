@@ -17,7 +17,7 @@ Those dependencies are for Fyne support
 The app connects to the /dev/ttyUSB0 and reads the data from the monitor, parses and pushes
 them in a CSV file (one per session), and shows simple graphs using Fyne Canvas.
 
-[![Screenshot](./gopolloplus.jpg)]
+![Screenshot](./gopolloplus.jpg)
 
 ## Configuration
 The app is configured using an INI file. An example is located in the "configs/" directory.
