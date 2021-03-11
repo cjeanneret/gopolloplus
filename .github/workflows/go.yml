@@ -3,8 +3,16 @@ name: Go
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+      - CHANGELOG.md
+      - README.md
+      - gopolloplus.jpg
   pull_request:
     branches: [ master ]
+    paths-ignore:
+      - CHANGELOG.md
+      - README.md
+      - gopolloplus.jpg
 
 jobs:
 
