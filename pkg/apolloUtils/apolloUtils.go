@@ -13,24 +13,46 @@ func LoadConfig(config_file string) *ApolloConfig {
   if err != nil {
     return nil
   }
+
   fullscreen, err := cfg.Section("gopolloplus").Key("fullscreen").Bool()
   if err != nil {
     fullscreen = false
   }
 
   history, err := homedir.Expand(cfg.Section("gopolloplus").Key("history_dir").String())
-  if err != nil {
-    history = "/tmp"
+  if err != nil || history == "" {
+    history = "/tmp/gopollo-history"
   }
 
-  config := ApolloConfig{
-    Socket: cfg.Section("gopolloplus").Key("socket").String(),
-    Logfile: cfg.Section("gopolloplus").Key("log_file").String(),
+  logfile, err := homedir.Expand(cfg.Section("gopolloplus").Key("log_file").String())
+  if err != nil || logfile == "" {
+    logfile = "/tmp/gopolloplus.log"
+  }
+
+  socket := cfg.Section("gopolloplus").Key("socket").String()
+  if socket == "" {
+    socket = "/dev/ttyUSB0"
+  }
+
+  config := &ApolloConfig{
+    Socket: socket,
+    Logfile: logfile,
     FullScreen: fullscreen,
     HistoryDir: history,
   }
 
-  return &config
+  return config
+}
+
+func DefaultConfig() *ApolloConfig {
+  config := &ApolloConfig{
+    Socket: "/dev/ttyUSB0",
+    Logfile: "/tmp/gopolloplus.log",
+    FullScreen: false,
+    HistoryDir: "/tmp/gopollo-history",
+  }
+
+  return config
 }
 
 func FindMinMax(a []uint64) (min, max uint64) {

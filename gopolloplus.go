@@ -2,10 +2,10 @@ package main
 import (
   "flag"
   "fmt"
+  homedir "github.com/mitchellh/go-homedir"
   "image/color"
   "log"
   "os"
-  "path"
   "time"
   fyne "fyne.io/fyne/v2"
   "fyne.io/fyne/v2/app"
@@ -20,8 +20,9 @@ import (
 
 func main() {
   var cfg *apolloUtils.ApolloConfig
-  standard_cfg := path.Join(os.Getenv("HOME"), ".gopolloplus.ini")
+  standard_cfg, _ := homedir.Expand("~/.gopolloplus.ini")
   _, err := os.Stat(standard_cfg)
+
   if err == nil {
     log.Printf("Found default config file: %s", standard_cfg)
     cfg = apolloUtils.LoadConfig(standard_cfg)
@@ -31,10 +32,12 @@ func main() {
     flag.Parse()
 
     if *config_file == "" {
-      log.Fatal("Missing '-c CONFIG_FILE' parameter")
+      log.Print("No configuration file, using defaults")
+      cfg = apolloUtils.DefaultConfig()
+    } else {
+      log.Printf("Loading %v", *config_file)
+      cfg = apolloUtils.LoadConfig(*config_file)
     }
-    log.Printf("Loading %v", *config_file)
-    cfg = apolloUtils.LoadConfig(*config_file)
   }
 
   log_file, err := os.OpenFile(cfg.Logfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
