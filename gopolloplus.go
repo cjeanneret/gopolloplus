@@ -83,13 +83,15 @@ func main() {
   }
 
   // Define time things (clock and elapsed time)
-  clockLabel := widget.NewLabelWithStyle("", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-  val_elapsed := widget.NewLabelWithStyle("ELAPSED", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-  val_dist := widget.NewLabelWithStyle("DISTANCE", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+  clockLabel := apolloUI.TimeCanvas("Time")
+  val_elapsed := apolloUI.TimeCanvas("Elapsed")
+  val_dist := apolloUI.TimeCanvas("Distance")
 
   containerTimes := container.NewGridWithColumns(
     3,
-    clockLabel, val_elapsed, val_dist,
+    container.NewCenter(clockLabel),
+    container.NewCenter(val_elapsed),
+    container.NewCenter(val_dist),
   )
 
   // Define buttons
@@ -120,111 +122,40 @@ func main() {
   )
 
   // Split canvas
-  position := float32(0)
+  lshift := float32(10)
   split_title := &canvas.Text{Color: color.Gray{Y: 255}, Text: "Split Time",
                               TextSize: apolloUI.TitleFontSize,
                               TextStyle: fyne.TextStyle{Bold: true}}
 
-  split_title.Move(fyne.Position{0, 5})
+  split_title.Move(fyne.Position{lshift, 5})
 
-  split_current := canvas.NewRectangle(apolloUI.CurrColor)
-  split_current.Resize(fyne.Size{Height: apolloUI.BarHeight, Width: 3})
-  split_current.Move(fyne.Position{position, 55})
-
-  split_curr_txt := &canvas.Text{Color: apolloUI.ValueColor,
-                                 TextSize: 15,
-                                 TextStyle: fyne.TextStyle{Bold: true}}
-  split_curr_txt.Move(fyne.Position{position+10, 75})
-
-  split_avg := canvas.NewRectangle(apolloUI.AVGColor)
-  split_avg.Resize(fyne.Size{Height: apolloUI.BarHeight, Width: 3})
-  split_avg.Move(fyne.Position{position, 110})
-
-  split_avg_txt := &canvas.Text{Color: apolloUI.ValueColor,
-                                TextSize: apolloUI.TitleFontSize,
-                                TextStyle: fyne.TextStyle{Bold: true}}
-  split_avg_txt.Move(fyne.Position{position+10, 130})
-
-  split_max := canvas.NewRectangle(apolloUI.MaxColor)
-  split_max.Resize(fyne.Size{Height: apolloUI.BarHeight, Width: 3})
-  split_max.Move(fyne.Position{position, 165})
-
-
-  split_max_txt := &canvas.Text{Color: apolloUI.ValueColor,
-                                TextSize: apolloUI.TitleFontSize,
-                                TextStyle: fyne.TextStyle{Bold: true}}
-  split_max_txt.Move(fyne.Position{position+10, 185})
+  split_current, split_curr_txt := apolloUI.CreateCanvas(lshift, 55, apolloUI.CurrColor)
+  split_avg, split_avg_txt := apolloUI.CreateCanvas(lshift, 110, apolloUI.AVGColor)
+  split_max, split_max_txt := apolloUI.CreateCanvas(lshift, 165, apolloUI.MaxColor)
 
   // Power canvas
-  position = apolloUI.GraphWidth+10
+  lshift = apolloUI.GraphWidth+10
   power_title := &canvas.Text{Color: color.Gray{Y: 255}, Text: "Power (Watts)",
                               TextSize: apolloUI.TitleFontSize,
                               TextStyle: fyne.TextStyle{Bold: true}}
 
-  power_title.Move(fyne.Position{position, 5})
-
-  power_current := canvas.NewRectangle(apolloUI.CurrColor)
-  power_current.Resize(fyne.Size{Height: apolloUI.BarHeight, Width: 3})
-  power_current.Move(fyne.Position{position, 55})
-
-  power_curr_txt := &canvas.Text{Color: apolloUI.ValueColor,
-                                 TextSize: apolloUI.TitleFontSize,
-                                 TextStyle: fyne.TextStyle{Bold: true}}
-  power_curr_txt.Move(fyne.Position{position+10, 75})
-
-  power_avg := canvas.NewRectangle(apolloUI.AVGColor)
-  power_avg.Resize(fyne.Size{Height: apolloUI.BarHeight, Width: 3})
-  power_avg.Move(fyne.Position{position, 110})
-
-  power_avg_txt := &canvas.Text{Color: apolloUI.ValueColor,
-                                TextSize: apolloUI.TitleFontSize,
-                                TextStyle: fyne.TextStyle{Bold: true}}
-  power_avg_txt.Move(fyne.Position{position+10, 130})
-
-  power_max := canvas.NewRectangle(apolloUI.MaxColor)
-  power_max.Resize(fyne.Size{Height: apolloUI.BarHeight, Width: 3})
-  power_max.Move(fyne.Position{position, 165})
-
-  power_max_txt := &canvas.Text{Color: apolloUI.ValueColor,
-                                TextSize: apolloUI.TitleFontSize,
-                                TextStyle: fyne.TextStyle{Bold: true}}
-  power_max_txt.Move(fyne.Position{position+10, 185})
+  power_title.Move(fyne.Position{lshift, 5})
+  power_current, power_curr_txt := apolloUI.CreateCanvas(lshift, 55, apolloUI.CurrColor)
+  power_avg, power_avg_txt := apolloUI.CreateCanvas(lshift, 110, apolloUI.AVGColor)
+  power_max, power_max_txt := apolloUI.CreateCanvas(lshift, 165, apolloUI.MaxColor)
 
   // SPM canvas
-  position = (2*apolloUI.GraphWidth)+10
+  lshift = (2*apolloUI.GraphWidth)+10
   spm_title := &canvas.Text{Color: color.Gray{Y: 255},
                             Text: "Strokes per minutes",
                             TextSize: apolloUI.TitleFontSize,
                             TextStyle: fyne.TextStyle{Bold: true}}
 
-  spm_title.Move(fyne.Position{position, 5})
+  spm_title.Move(fyne.Position{lshift, 5})
 
-  spm_current := canvas.NewRectangle(apolloUI.CurrColor)
-  spm_current.Resize(fyne.Size{Height: apolloUI.BarHeight, Width: 3})
-  spm_current.Move(fyne.Position{position, 55})
-
-  spm_curr_txt := &canvas.Text{Color: apolloUI.ValueColor,
-                               TextSize: apolloUI.TitleFontSize,
-                               TextStyle: fyne.TextStyle{Bold: true}}
-  spm_curr_txt.Move(fyne.Position{position+10, 75})
-
-  spm_avg := canvas.NewRectangle(apolloUI.AVGColor)
-  spm_avg.Resize(fyne.Size{Height: apolloUI.BarHeight, Width: 3})
-  spm_avg.Move(fyne.Position{position, 110})
-
-  spm_avg_txt := &canvas.Text{Color: apolloUI.ValueColor,
-                              TextSize: apolloUI.TitleFontSize,
-                              TextStyle: fyne.TextStyle{Bold: true}}
-  spm_avg_txt.Move(fyne.Position{position+10, 130})
-
-  spm_max := canvas.NewRectangle(apolloUI.MaxColor)
-  spm_max.Resize(fyne.Size{Height: apolloUI.BarHeight, Width: 3})
-  spm_max.Move(fyne.Position{position, 165})
-
-  spm_max_txt := &canvas.Text{Color: apolloUI.ValueColor,
-                              TextSize: apolloUI.TitleFontSize,
-                              TextStyle: fyne.TextStyle{Bold: true}}
-  spm_max_txt.Move(fyne.Position{position+10, 185})
+  spm_current, spm_curr_txt := apolloUI.CreateCanvas(lshift, 55, apolloUI.CurrColor)
+  spm_avg, spm_avg_txt := apolloUI.CreateCanvas(lshift, 110, apolloUI.AVGColor)
+  spm_max, spm_max_txt := apolloUI.CreateCanvas(lshift, 165, apolloUI.MaxColor)
 
   // Define graph container
   containerGraphs := container.NewWithoutLayout(split_title, split_current, split_curr_txt,
@@ -246,13 +177,13 @@ func main() {
   window.SetContent(mainContainer)
 
   // Update clock
-  go func(clockLabel *widget.Label) {
+  go func(clockLabel *canvas.Text) {
     var (
       hours, minutes, seconds int
     )
     for {
       hours, minutes, seconds = time.Time.Clock(time.Now())
-      clockLabel.SetText(fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds))
+      clockLabel.Text = fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
       clockLabel.Refresh()
       time.Sleep(time.Second)
     }
@@ -290,19 +221,20 @@ func main() {
         duration, _ = time.ParseDuration(fmt.Sprintf("%vs", d.TotalTime))
 
         val_dist.Text = fmt.Sprintf("%v meters", d.Distance)
+        val_dist.Refresh()
         val_elapsed.Text = fmt.Sprintf("%v", duration)
+        val_elapsed.Refresh()
 
         split_history = append(split_history, d.TimeTo500m)
         power_history = append(power_history, d.Watt)
         spm_history = append(spm_history, d.SPM)
 
         go apolloUI.ResizeCanvas(split_history, split_current, split_avg, split_max,
-                                 split_curr_txt, split_avg_txt, split_max_txt)
+                                 split_curr_txt, split_avg_txt, split_max_txt, true)
         go apolloUI.ResizeCanvas(power_history, power_current, power_avg, power_max,
-                                 power_curr_txt, power_avg_txt, power_max_txt)
+                                 power_curr_txt, power_avg_txt, power_max_txt, false)
         go apolloUI.ResizeCanvas(spm_history, spm_current, spm_avg, spm_max,
-                                 spm_curr_txt, spm_avg_txt, spm_max_txt)
-        // TODO: write data to file
+                                 spm_curr_txt, spm_avg_txt, spm_max_txt, false)
         go func() {
           history_file.Write([]byte(d.ToCSV()))
         }()
