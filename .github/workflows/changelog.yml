@@ -27,3 +27,4 @@ jobs:
         with:
           commit_message: Automatic changelog update
           file_pattern: CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}
