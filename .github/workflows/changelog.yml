@@ -10,8 +10,10 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  - name: Generate changelog
-    uses: heinrichreimer/action-github-changelog-generator@v2.2
-    with:
-      token: ${{ secrets.GITHUB_TOKEN }}
+  GenerateChangelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Changelog
+        uses: heinrichreimer/action-github-changelog-generator@v2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
