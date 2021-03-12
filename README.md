@@ -3,6 +3,7 @@ Talk to your FDF Apollo Plus console!
 
 ## Status
 [![Go](https://github.com/cjeanneret/gopolloplus/actions/workflows/go.yml/badge.svg)](https://github.com/cjeanneret/gopolloplus/actions/workflows/go.yml)
+[![CodeQL](https://github.com/cjeanneret/gopolloplus/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/cjeanneret/gopolloplus/actions/workflows/codeql-analysis.yml)
 
 ## What does it do?
 This application listens to the FDF USB Serial port, logs the data in a CSV, and shows simple graphs.
