@@ -4,6 +4,7 @@ import (
   "os"
   "path"
   "time"
+  "fyne.io/fyne/v2/theme"
   "gopkg.in/ini.v1"
   homedir "github.com/mitchellh/go-homedir"
 )
@@ -34,11 +35,18 @@ func LoadConfig(config_file string) *ApolloConfig {
     socket = "/dev/ttyUSB0"
   }
 
+  t := cfg.Section("gopolloplus").Key("theme").String()
+  th := theme.DarkTheme()
+  if t == "light" {
+    th = theme.LightTheme()
+  }
+
   config := &ApolloConfig{
     Socket: socket,
     Logfile: logfile,
     FullScreen: fullscreen,
     HistoryDir: history,
+    Theme: th,
   }
 
   return config
