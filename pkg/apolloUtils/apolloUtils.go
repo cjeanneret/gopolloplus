@@ -4,64 +4,7 @@ import (
   "os"
   "path"
   "time"
-  "fyne.io/fyne/v2/theme"
-  "gopkg.in/ini.v1"
-  homedir "github.com/mitchellh/go-homedir"
 )
-
-func LoadConfig(config_file string) *ApolloConfig {
-  cfg, err := ini.Load(config_file)
-  if err != nil {
-    return nil
-  }
-
-  fullscreen, err := cfg.Section("gopolloplus").Key("fullscreen").Bool()
-  if err != nil {
-    fullscreen = false
-  }
-
-  history, err := homedir.Expand(cfg.Section("gopolloplus").Key("history_dir").String())
-  if err != nil || history == "" {
-    history = "/tmp/gopollo-history"
-  }
-
-  logfile, err := homedir.Expand(cfg.Section("gopolloplus").Key("log_file").String())
-  if err != nil || logfile == "" {
-    logfile = "/tmp/gopolloplus.log"
-  }
-
-  socket := cfg.Section("gopolloplus").Key("socket").String()
-  if socket == "" {
-    socket = "/dev/ttyUSB0"
-  }
-
-  t := cfg.Section("gopolloplus").Key("theme").String()
-  th := theme.DarkTheme()
-  if t == "light" {
-    th = theme.LightTheme()
-  }
-
-  config := &ApolloConfig{
-    Socket: socket,
-    Logfile: logfile,
-    FullScreen: fullscreen,
-    HistoryDir: history,
-    Theme: th,
-  }
-
-  return config
-}
-
-func DefaultConfig() *ApolloConfig {
-  config := &ApolloConfig{
-    Socket: "/dev/ttyUSB0",
-    Logfile: "/tmp/gopolloplus.log",
-    FullScreen: false,
-    HistoryDir: "/tmp/gopollo-history",
-  }
-
-  return config
-}
 
 func FindMinMax(a []uint64) (min, max uint64) {
   min = a[0]

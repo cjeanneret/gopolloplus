@@ -39,12 +39,12 @@ func main() {
     }
   }
 
-  log_file, err := os.OpenFile(cfg.Logfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+  log_file, err := os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
   if err != nil {
     log.Fatal(err)
   }
   defer log_file.Close()
-  log.Printf("Writing logs to %s", cfg.Logfile)
+  log.Printf("Writing logs to %s", cfg.LogFile)
   log.SetOutput(log_file)
   log.Print("############ NEW RUN")
 
@@ -105,23 +105,6 @@ func main() {
     ui.Quit()
   })
 
-  button_reset := widget.NewButtonWithIcon("New Session", theme.DeleteIcon(), func() {
-    log.Print("Resetting remote monitor")
-    monitor.ResetSession()
-    history_file.Close()
-    // Prepare a new history file
-    hfile = apolloUtils.GetHistoryFile(cfg)
-    history_file, _ = os.OpenFile(hfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-  })
-
-  button_c2 := widget.NewButtonWithIcon("Send to log.C2", theme.MailForwardIcon(), func() {
-    log.Print("Sending data to log.C2")
-  })
-
-  containerButtons := container.NewAdaptiveGrid(
-    3,
-    button_reset, button_c2, button_quit,
-  )
 
   // Split canvas
   lshift := float32(10)
@@ -169,6 +152,43 @@ func main() {
                                                 spm_title, spm_current, spm_curr_txt,
                                                 spm_avg, spm_avg_txt,
                                                 spm_max, spm_max_txt)
+
+  button_reset := widget.NewButtonWithIcon("New Session", theme.DeleteIcon(), func() {
+    log.Print("Resetting remote monitor")
+    monitor.ResetSession()
+    history_file.Close()
+    // Prepare a new history file
+    hfile = apolloUtils.GetHistoryFile(cfg)
+    history_file, _ = os.OpenFile(hfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+  })
+
+  button_c2 := widget.NewButtonWithIcon("Send to log.C2", theme.MailForwardIcon(), func() {
+    log.Print("Sending data to log.C2")
+  })
+
+  button_theme := widget.NewCheck("Dark Theme", func(checked bool) {
+    if checked {
+      ui.Settings().SetTheme(theme.DarkTheme())
+      cfg.ThemeVariant = "dark"
+    } else {
+      ui.Settings().SetTheme(theme.LightTheme())
+      cfg.ThemeVariant = "light"
+    }
+    cfg.Write()
+    labels := []*canvas.Text{split_title, power_title, spm_title, clockLabel, val_elapsed, val_dist}
+    for _, o := range labels {
+      o.Color = theme.TextColor()
+      o.Refresh()
+    }
+  })
+  if cfg.ThemeVariant == "dark" {
+    button_theme.SetChecked(true)
+  }
+
+  containerButtons := container.NewAdaptiveGrid(
+    4,
+    button_theme, button_reset, button_c2, button_quit,
+  )
 
   mainContainer := container.NewVBox(
     containerButtons,
