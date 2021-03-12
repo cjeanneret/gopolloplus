@@ -3,7 +3,6 @@ import (
   "flag"
   "fmt"
   homedir "github.com/mitchellh/go-homedir"
-  "image/color"
   "log"
   "os"
   "time"
@@ -74,8 +73,8 @@ func main() {
   }
 
   ui := app.New()
-  window := ui.NewWindow("")
-  window.SetTitle("GoPolloPlus - FDF Apollo Plus Rower Stats")
+  ui.Settings().SetTheme(cfg.Theme)
+  window := ui.NewWindow("GoPolloPlus - FDF Apollo Plus Rower Stats")
   window.SetMaster()
   window.CenterOnScreen()
   if cfg.FullScreen {
@@ -126,7 +125,7 @@ func main() {
 
   // Split canvas
   lshift := float32(10)
-  split_title := &canvas.Text{Color: color.Gray{Y: 255}, Text: "Split Time",
+  split_title := &canvas.Text{Color: theme.TextColor(), Text: "Split Time",
                               TextSize: apolloUI.TitleFontSize,
                               TextStyle: fyne.TextStyle{Bold: true}}
 
@@ -138,7 +137,7 @@ func main() {
 
   // Power canvas
   lshift = apolloUI.GraphWidth+10
-  power_title := &canvas.Text{Color: color.Gray{Y: 255}, Text: "Power (Watts)",
+  power_title := &canvas.Text{Color: theme.TextColor(), Text: "Power (Watts)",
                               TextSize: apolloUI.TitleFontSize,
                               TextStyle: fyne.TextStyle{Bold: true}}
 
@@ -149,7 +148,7 @@ func main() {
 
   // SPM canvas
   lshift = (2*apolloUI.GraphWidth)+10
-  spm_title := &canvas.Text{Color: color.Gray{Y: 255},
+  spm_title := &canvas.Text{Color: theme.TextColor(),
                             Text: "Strokes per minutes",
                             TextSize: apolloUI.TitleFontSize,
                             TextStyle: fyne.TextStyle{Bold: true}}

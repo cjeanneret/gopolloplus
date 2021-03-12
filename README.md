@@ -33,6 +33,7 @@ Here are the supported (and mandatory) parameters for each sections.
 * ```log_file```: Full path to the log file
 * ```fullscreen```: Whether the window must be in fullscreen or not. Boolean. Defaults to false.
 * ```history_dir```: Location for the history files. Better if it exists. Supports "~/" in the path.
+* ```theme```: Set application theme. Either "dark" or "light". Defaults to "dark".
 
 
 ## License

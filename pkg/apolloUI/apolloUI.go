@@ -4,6 +4,7 @@ import (
   "fmt"
   "fyne.io/fyne/v2"
   "fyne.io/fyne/v2/canvas"
+  "fyne.io/fyne/v2/theme"
   "github.com/cjeanneret/gopolloplus/pkg/apolloUtils"
   "image/color"
   "time"
@@ -24,7 +25,7 @@ var (
 )
 
 func TimeCanvas(title string) (c *canvas.Text) {
-  c = &canvas.Text{Color: WhiteColor,
+  c = &canvas.Text{Color: theme.TextColor(),
                    TextSize: TitleFontSize,
                    Text: title,
                    TextStyle: fyne.TextStyle{Bold: true}}
