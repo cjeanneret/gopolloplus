@@ -165,6 +165,9 @@ func main() {
   button_c2 := widget.NewButtonWithIcon("Send to log.C2", theme.MailForwardIcon(), func() {
     log.Print("Sending data to log.C2")
   })
+  if !cfg.Concept2 {
+    button_c2.Disable()
+  }
 
   button_theme := widget.NewCheck("Dark Theme", func(checked bool) {
     if checked {
