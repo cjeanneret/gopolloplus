@@ -11,13 +11,12 @@ import (
 )
 
 type ApolloConfig struct {
-  FullScreen bool
+  Concept2, FullScreen bool
   ConfigFile, ThemeVariant, Socket, LogFile, HistoryDir string
   Theme fyne.Theme
 }
 
 func (a *ApolloConfig) Write() {
-  // TODO: dump config to file (override)
   // Note: Write must override the existing config file
   cfg_file, err := os.OpenFile(a.ConfigFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
   if err != nil {
@@ -45,6 +44,7 @@ func DefaultConfig() *ApolloConfig {
     ConfigFile: standard_cfg,
     ThemeVariant: "dark",
     Theme: theme.DarkTheme(),
+    Concept2: false,
   }
 
   return config
@@ -92,6 +92,7 @@ func LoadConfig(config_file string) *ApolloConfig {
     Theme: th,
     ThemeVariant: variant,
     ConfigFile: config_file,
+    Concept2: false,
   }
 
   return config
