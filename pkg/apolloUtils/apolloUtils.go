@@ -45,6 +45,6 @@ func GetHistoryFile(cfg *ApolloConfig) (p string) {
 }
 
 func CSVHeader(f *os.File) {
-  header := []byte("timestamp,totalTime,distance,timeTo500m,SPM,watt,calPerH,level\n")
+  header := []byte("timestamp,totalTime,distance,timeTo500m,SPM,watt,calPerH,level,raw\n")
   f.Write(header)
 }

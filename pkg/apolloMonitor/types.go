@@ -145,7 +145,7 @@ func (m *Monitor) Disconnect() {
 type ApolloData struct {
   TotalTime, Distance, TimeTo500m uint64
   SPM, Watt, CalPerH, Level uint64
-  Timestamp string
+  Timestamp, Raw string
 }
 
 func (d *ApolloData) ToJSON() ([]byte, error) {
@@ -153,9 +153,9 @@ func (d *ApolloData) ToJSON() ([]byte, error) {
 }
 
 func (d *ApolloData) ToCSV() (string) {
-  return fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v\n",
+  return fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
                      d.Timestamp, d.TotalTime, d.Distance, d.TimeTo500m,
-                     d.SPM, d.Watt, d.CalPerH, d.Level)
+                     d.SPM, d.Watt, d.CalPerH, d.Level, d.Raw)
 }
 
 func (m Monitor) ParseData() *ApolloData {
@@ -183,6 +183,7 @@ func (m Monitor) ParseData() *ApolloData {
     Watt: watt,
     CalPerH: calph,
     Level: level,
+    Raw: m.Data,
   }
 
   return output
