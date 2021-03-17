@@ -18,7 +18,10 @@ import (
 )
 
 func main() {
-  var cfg *apolloUtils.ApolloConfig
+  var (
+    cfg *apolloUtils.ApolloConfig
+    history_file *os.File
+  )
   standard_cfg, _ := homedir.Expand("~/.gopolloplus.ini")
   _, err := os.Stat(standard_cfg)
 
@@ -63,11 +66,6 @@ func main() {
   data_flow := make(chan *apolloMonitor.ApolloData, 5) // Make a buffered chan just in case
   killWriter := make(chan bool)
 
-  hfile := apolloUtils.GetHistoryFile(cfg)
-  history_file, _ := os.OpenFile(hfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-  defer history_file.Close()
-  apolloUtils.CSVHeader(history_file)
-
   if err != nil {
     log.Fatal(err)
   }
@@ -84,6 +82,10 @@ func main() {
     window.SetFixedSize(true)
   }
 
+  mainContainer := container.NewVBox()
+  dataContainer := container.NewVBox()
+  hfile := apolloUtils.GetHistoryFile(cfg)
+
   // Define time things (clock and elapsed time)
   clockLabel := apolloUI.TimeCanvas("Time")
   val_elapsed := apolloUI.TimeCanvas("Elapsed")
@@ -95,16 +97,6 @@ func main() {
     container.NewCenter(val_elapsed),
     container.NewCenter(val_dist),
   )
-
-  // Define buttons
-  button_quit := widget.NewButtonWithIcon("Quit", theme.CancelIcon(), func() {
-    killWriter <- true
-    monitor.Disconnect()
-    history_file.Close()
-    window.Close()
-    ui.Quit()
-  })
-
 
   // Split canvas
   lshift := float32(10)
@@ -132,7 +124,7 @@ func main() {
   // SPM canvas
   lshift = (2*apolloUI.GraphWidth)+10
   spm_title := &canvas.Text{Color: theme.TextColor(),
-                            Text: "Strokes per minutes",
+                            Text: "Strokes per minute",
                             TextSize: apolloUI.TitleFontSize,
                             TextStyle: fyne.TextStyle{Bold: true}}
 
@@ -152,6 +144,23 @@ func main() {
                                                 spm_title, spm_current, spm_curr_txt,
                                                 spm_avg, spm_avg_txt,
                                                 spm_max, spm_max_txt)
+  var (
+    split_history = []int64{}
+    power_history = []int64{}
+    spm_history = []int64{}
+    duration time.Duration
+  )
+
+  button_history := &widget.Button{Text: "History", Icon: theme.FolderOpenIcon(),}
+
+  // Define buttons
+  button_quit := widget.NewButtonWithIcon("Quit", theme.CancelIcon(), func() {
+    killWriter <- true
+    monitor.Disconnect()
+    history_file.Close()
+    window.Close()
+    ui.Quit()
+  })
 
   button_reset := widget.NewButtonWithIcon("New Session", theme.DeleteIcon(), func() {
     log.Print("Resetting remote monitor")
@@ -159,7 +168,9 @@ func main() {
     history_file.Close()
     // Prepare a new history file
     hfile = apolloUtils.GetHistoryFile(cfg)
-    history_file, _ = os.OpenFile(hfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+    split_history = []int64{}
+    power_history = []int64{}
+    spm_history = []int64{}
   })
 
   button_c2 := widget.NewButtonWithIcon("Send to log.C2", theme.MailForwardIcon(), func() {
@@ -188,16 +199,19 @@ func main() {
     button_theme.SetChecked(true)
   }
 
+  button_history.OnTapped = func () {apolloUI.ToggleHistory(ui, cfg)}
+  button_history.Refresh()
+
   containerButtons := container.NewAdaptiveGrid(
-    4,
-    button_theme, button_reset, button_c2, button_quit,
+    5,
+    button_theme, button_reset, button_history, button_c2, button_quit,
   )
 
-  mainContainer := container.NewVBox(
-    containerButtons,
-    containerTimes,
-    containerGraphs,
-  )
+  dataContainer.Add(containerTimes)
+  dataContainer.Add(containerGraphs)
+
+  mainContainer.Add(containerButtons)
+  mainContainer.Add(dataContainer)
 
   window.SetContent(mainContainer)
 
@@ -233,12 +247,6 @@ func main() {
   }()
   go func() {
     log.Print("Start chan reader")
-    var (
-      split_history = []uint64{}
-      power_history = []uint64{}
-      spm_history = []uint64{}
-      duration time.Duration
-    )
     exit := false
     for {
       select {
@@ -261,6 +269,8 @@ func main() {
         go apolloUI.ResizeCanvas(spm_history, spm_current, spm_avg, spm_max,
                                  spm_curr_txt, spm_avg_txt, spm_max_txt, false)
         go func() {
+          history_file, _ = os.OpenFile(hfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+          defer history_file.Close()
           history_file.Write([]byte(d.ToCSV()))
         }()
       default:

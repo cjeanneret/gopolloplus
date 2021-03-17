@@ -1,8 +1,9 @@
 package apolloMonitor
 
 import (
-  "fmt"
+  "encoding/csv"
   "encoding/json"
+  "fmt"
   "log"
   "os"
   "strconv"
@@ -143,9 +144,10 @@ func (m *Monitor) Disconnect() {
 }
 
 type ApolloData struct {
-  TotalTime, Distance, TimeTo500m uint64
-  SPM, Watt, CalPerH, Level uint64
-  Timestamp, Raw string
+  TotalTime, Distance, TimeTo500m int64
+  SPM, Watt, CalPerH, Level int64
+  Timestamp int64
+  Raw string
 }
 
 func (d *ApolloData) ToJSON() ([]byte, error) {
@@ -158,24 +160,61 @@ func (d *ApolloData) ToCSV() (string) {
                      d.SPM, d.Watt, d.CalPerH, d.Level, d.Raw)
 }
 
+func LoadCSV(filename string) (data []*ApolloData) {
+  f, err := os.Open(filename)
+  if err != nil {
+    log.Fatalf("LoadCSV: %v", err)
+  }
+  defer f.Close()
+  lines, err := csv.NewReader(f).ReadAll()
+  if err != nil {
+    log.Fatalf("LoadCSV: %v", err)
+  }
+
+  for _, line := range lines {
+    timestamp, _ := strconv.ParseInt(line[0], 10, 64)
+    totalTime, _ := strconv.ParseInt(line[1], 10, 64)
+    distance, _ := strconv.ParseInt(line[2], 10, 64)
+    split, _ := strconv.ParseInt(line[3], 10, 64)
+    spm, _ := strconv.ParseInt(line[4], 10, 64)
+    watt, _ := strconv.ParseInt(line[5], 10, 64)
+    calph, _ := strconv.ParseInt(line[6], 10, 64)
+    lvl, _ := strconv.ParseInt(line[7], 10, 64)
+
+    data = append(data, &ApolloData{
+      Timestamp: timestamp,
+      TotalTime: totalTime,
+      Distance: distance,
+      TimeTo500m: split,
+      SPM: spm,
+      Watt: watt,
+      CalPerH: calph,
+      Level: lvl,
+      Raw: line[8],
+    })
+  }
+  return
+}
+
 func (m Monitor) ParseData() *ApolloData {
-  totalMinutes, _ := strconv.ParseUint(m.Data[3:5], 10, 64)
-  totalSeconds, _ := strconv.ParseUint(m.Data[5:7], 10, 64)
-  distance, _ := strconv.ParseUint(m.Data[7:12], 10, 64)
-  MinutesTo500m, _ := strconv.ParseUint(m.Data[13:15], 10, 64)
-  SecondsTo500m, _ := strconv.ParseUint(m.Data[15:17], 10, 64)
-  spm, _ := strconv.ParseUint(m.Data[17:20], 10, 64)
-  watt, _ := strconv.ParseUint(m.Data[20:23], 10, 64)
-  calph, _ := strconv.ParseUint(m.Data[23:27], 10, 64)
-  level, _ := strconv.ParseUint(m.Data[27:29], 10, 64)
+  t := time.Now()
+
+  timestamp, _ := strconv.ParseInt(t.Format("20060102150405"), 10, 64)
+  totalMinutes, _ := strconv.ParseInt(m.Data[3:5], 10, 64)
+  totalSeconds, _ := strconv.ParseInt(m.Data[5:7], 10, 64)
+  distance, _ := strconv.ParseInt(m.Data[7:12], 10, 64)
+  MinutesTo500m, _ := strconv.ParseInt(m.Data[13:15], 10, 64)
+  SecondsTo500m, _ := strconv.ParseInt(m.Data[15:17], 10, 64)
+  spm, _ := strconv.ParseInt(m.Data[17:20], 10, 64)
+  watt, _ := strconv.ParseInt(m.Data[20:23], 10, 64)
+  calph, _ := strconv.ParseInt(m.Data[23:27], 10, 64)
+  level, _ := strconv.ParseInt(m.Data[27:29], 10, 64)
 
   totalTime := totalMinutes*60+totalSeconds
   timeTo500m := MinutesTo500m*60+SecondsTo500m
 
-  t := time.Now()
-
   output := &ApolloData{
-    Timestamp: t.Format("20060102150405"),
+    Timestamp: timestamp,
     TotalTime: totalTime,
     Distance: distance,
     TimeTo500m: timeTo500m,

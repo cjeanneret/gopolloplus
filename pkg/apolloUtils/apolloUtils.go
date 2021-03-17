@@ -6,7 +6,7 @@ import (
   "time"
 )
 
-func FindMinMax(a []uint64) (min, max uint64) {
+func FindMinMax(a []int64) (min, max int64) {
   min = a[0]
   max = a[0]
   for _, value := range a {
@@ -20,7 +20,7 @@ func FindMinMax(a []uint64) (min, max uint64) {
   return
 }
 
-func Average(a []uint64) (avg float64) {
+func Average(a []int64) (avg float64) {
   total := 0.0
   for _, value := range a{
     total += float64(value)
