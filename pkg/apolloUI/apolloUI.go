@@ -4,17 +4,23 @@ import (
   "fmt"
   "fyne.io/fyne/v2"
   "fyne.io/fyne/v2/canvas"
+  "fyne.io/fyne/v2/container"
   "fyne.io/fyne/v2/theme"
+  "fyne.io/fyne/v2/widget"
+  "github.com/cjeanneret/gopolloplus/pkg/apolloGraph"
   "github.com/cjeanneret/gopolloplus/pkg/apolloUtils"
   "image/color"
+  "io/ioutil"
+  "log"
+  "sort"
   "time"
 )
 
 const (
   BarHeight = 50
   GraphWidth = 300
-  TitleFontSize = 26
-  ValueFontSize = 18
+  TitleFontSize = 25
+  ValueFontSize = 30
 )
 var (
   ValueColor = color.RGBA{3, 169, 244, 255}
@@ -22,11 +28,12 @@ var (
   AVGColor = color.Gray{Y: 85}
   MaxColor = color.Gray{Y: 65}
   WhiteColor = color.Gray{Y: 255}
+  historyList = &widget.List{}
 )
 
 func TimeCanvas(title string) (c *canvas.Text) {
   c = &canvas.Text{Color: theme.TextColor(),
-                   TextSize: TitleFontSize,
+                   TextSize: ValueFontSize,
                    Text: title,
                    TextStyle: fyne.TextStyle{Bold: true}}
   return
@@ -42,13 +49,13 @@ func CreateCanvas(lshift, down float32, c color.Color) (rect *canvas.Rectangle,
   rect_txt = &canvas.Text{Color: ValueColor,
                           TextSize: ValueFontSize,
                           TextStyle: fyne.TextStyle{Bold: true}}
-  rect_txt.Move(fyne.Position{lshift+10, down+20})
+  rect_txt.Move(fyne.Position{lshift+10, down+10})
 
   return
 
 }
 
-func ResizeCanvas(values []uint64, curr, avg, max *canvas.Rectangle,
+func ResizeCanvas(values []int64, curr, avg, max *canvas.Rectangle,
                   curr_txt, avg_txt, max_txt *canvas.Text,
                   is_duration bool) {
 
@@ -83,4 +90,55 @@ func ResizeCanvas(values []uint64, curr, avg, max *canvas.Rectangle,
   avg_txt.Refresh()
   max_txt.Refresh()
 
+}
+
+func historyListing(cfg *apolloUtils.ApolloConfig, ct *fyne.Container) *widget.List {
+  files, err := ioutil.ReadDir(cfg.HistoryDir)
+  if err != nil {
+    log.Printf("historyListing: %v", err)
+  }
+  filenames := []string{}
+  for _, n := range files {
+    filenames = append(filenames, n.Name())
+  }
+  sort.Sort(sort.Reverse(sort.StringSlice(filenames)))
+
+  historyList = widget.NewList(
+    func() int { return len(filenames) },
+    func() fyne.CanvasObject { return widget.NewLabel("Sessions") },
+    func(i widget.ListItemID, o fyne.CanvasObject) { o.(*widget.Label).SetText(filenames[i]) },
+  )
+
+  historyList.OnSelected = func(i widget.ListItemID) { showSession(files[i].Name(), cfg, ct) }
+  historyList.Resize(fyne.Size{Height: 500, Width: GraphWidth})
+
+  return historyList
+}
+
+func showSession(f string, cfg *apolloUtils.ApolloConfig, ct *fyne.Container) {
+  apolloGraph.PlotGraph(f, ct, cfg, GraphWidth*2, 500)
+}
+
+func ToggleHistory(ui fyne.App, cfg *apolloUtils.ApolloConfig) {
+  history := ui.NewWindow("History")
+  history.CenterOnScreen()
+  history.Resize(fyne.Size{Width:float32(GraphWidth*3 + 10), Height: 600})
+  history.SetFixedSize(true)
+
+  layout := container.NewWithoutLayout()
+  listing := historyListing(cfg, layout)
+  listing.Move(fyne.Position{5, 40})
+  close_button := widget.NewButtonWithIcon("Close", theme.CancelIcon(), func() {
+    history.Close()
+  })
+
+  close_button.Resize(fyne.Size{Height: 35, Width: GraphWidth})
+  close_button.Move(fyne.Position{5, 5})
+
+  layout.Add(close_button)
+  layout.Add(listing)
+
+  history.SetContent(layout)
+
+  history.Show()
 }
